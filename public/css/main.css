@@ -1,0 +1,25 @@
+.mobTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mobTable tr:nth-child(even) {
+    background-color: #eee;
+}
+.mobTable tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+.mobTable tr td{
+    border: solid 1px black;
+    padding: 5px;
+}
+/*.mobTable thead th {*/
+    /*position: fixed;*/
+/*}*/
+
+.mobTable thead th {
+    background: lightgrey;
+    border: solid 1px black;
+    padding: 5px;
+}

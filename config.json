@@ -1,0 +1,23 @@
+{
+  "title":"MODA.GS.UA",
+  "icon32x32":"/icons/modaua32x32.ico",
+  "imageSmall":"/imgs/modaua_small.jpg",
+  "imageMain":"/imgs/modaua_big.jpg",
+  "modules":[
+    "sysadmin",
+    "print",
+    "main",
+    "dirsCommon",
+    "dirsForDocs",
+    "dirsForProds",
+    "rec"
+    /*"mainPage",*/
+    /*"system",*/
+  ],
+  "appMenu":[
+    { "menuTitle":"Приход товара", "menuItemName":"menuBarItemRec", "pageTitle":"Приход товара", "module":"rec", "closable":false},
+    { "menuTitle":"Выход", "menuItemName":"menuBarItemClose", "action":"close"},
+    { "menuTitle":"О программе", "menuItemName":"menuBarItemHelpAbout", "action":"help_about"}
+  ],
+  "autorun":["menuBarItemRec"]
+}

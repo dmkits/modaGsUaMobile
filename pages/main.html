@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<!--xmlns="http://www.w3.org/1999/xhtml"-->
+<head>
+    <link rel="shortcut icon" type="image/x-icon" href="/icons/heart16.ico"/>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/>
+    <!--<meta name="apple-mobile-web-app-capable" content="yes"/>-->
+    <link href="/jslib/dojox/mobile/themes/iphone/iphone.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/jslib/dojox/widget/Calendar/Calendar.css">
+    <link rel="stylesheet" href="/jslib/dojox/calendar/themes/claro/Calendar.css">
+    <link href="/jslib/dijit/themes/claro/claro.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" media="screen">
+    <!--<script type="text/javascript" src="/jslib/dojox/mobile/deviceTheme.js"></script>-->
+
+    <script src="/jslib/moment/moment-with-locales.js"></script>
+    <script src="/jslib/numeral/numeral.js"></script>
+    <script src="/jslib/numeral/languages/ru-UA.js"></script>
+    <script src="/jslib/mobTable.js"></script>
+    <script type="text/javascript" src="/jslib/dojo/dojo.js"
+            data-dojo-config="async: true, parseOnLoad: false"></script>
+    <title></title>
+</head>
+<body id="body" class="claro" style="width:100%; height: 100%">
+</body>
+<script>
+    require(["dojo/dom-construct", "dojo/_base/xhr", "dojox/mobile", "dojox/mobile/parser", "dojox/mobile/View", "dojox/mobile/Heading",
+                "dojox/mobile/RoundRectList", "dojox/mobile/ListItem", "dojo/parser", "dojo/ready", "dojox/mobile/ToolBarButton",
+                "dijit/registry", "dojox/mobile/ToggleButton", "dojox/mobile/ScrollableView", "dojox/mobile/ProgressIndicator",
+                "dojox/mobile/SimpleDialog", "dojox/mobile/SimpleDialog", "myDojoModules/calendarView", "myDojoModules/pickUnitView",
+                 "myDojoModules/detailView", "myDojoModules/request","dojox/mobile/Container"],
+            function (domConstruct, xhr, mobile, mparser, View, Heading,
+                      roundRectList, ListItem, parser, ready, ToolBarButton,
+                      registry, ToggleButton, ScrollableView, ProgressIndicator,
+                      SimpleDialog, Button, CalendarView, PickUnitView, DetailView, Request, Container) {
+            moment.locale("uk");
+            numeral.language('ru-UA');
+
+            var view_main = new View({id: "view_main"});
+           // view_main.emblemIcon="/icons/hearts29x29.ico";
+            document.getElementById('body').appendChild(view_main.domNode);
+                view_main.startup();
+
+//            var calendarView = new CalendarView( {id:"calendar_view"} );
+//            var pickUnitView = new PickUnitView({id:"pick_unit_view"});
+
+//            view_main.inner_scroll = new ScrollableView({});
+            view_main.firstHeading = new Heading({id: "th_main",label:"Приходные накладные"});
+            view_main.addChild(view_main.firstHeading);
+                view_main.firstHeading.startup();
+
+
+          /*  var pickUnitBtnHeading = new Heading({id: "pubtn_h"});
+
+            if (!view_main.dialogWin) {
+                view_main.dialogWin = new SimpleDialog({
+                    id: "dialogWin"
+                });
+                document.getElementById('body').appendChild(view_main.dialogWin.domNode);
+            }
+            if (!view_main.msgBox) {
+                view_main.msgBox = domConstruct.create("div",
+                    {class: "mblSimpleDialogText"},
+                    view_main.dialogWin.domNode);
+            }
+            if (!view_main.cancelBtn)
+                view_main.cancelBtn = new Button({
+                    class: "mblSimpleDialogButton mblRedButton",
+                    innerHTML: "Ok"
+                });
+            view_main.cancelBtn.connect(view_main.cancelBtn.domNode, "click",
+                function (e) {
+                    view_main.dialogWin.hide()
+                });
+            view_main.cancelBtn.placeAt(view_main.dialogWin.domNode);
+            view_main.addChild(pickUnitBtnHeading);
+            view_main.addChild(view_main.inner_scroll);
+            var v = window.innerWidth - 34;
+            view_main.pickUnitBtn = new ToolBarButton({
+                style: "width:" + v + "px; font-size:14px; align: center",
+                transition: "none",
+                moveTo: "pick_unit_view",
+                onClick: function () {
+                    pickUnitView.setContent(this,view_main);
+                }
+            });
+
+            window.addEventListener("resize", function() {
+                v = window.innerWidth - 34;
+                view_main.pickUnitBtn.set("style", "width:" + v + "px; font-size:14px; align: center");
+            }, false);
+
+            pickUnitBtnHeading.addChild(view_main.pickUnitBtn);
+
+            view_main.setEmblemBtn=function(heading){
+                if(!view_main.emblemIcon) return;
+                var emblemBtn = new ToolBarButton({
+                    icon: view_main.emblemIcon,
+                    iconPos: "0,0,29,29",
+                    style: "float:right",
+                    preventTouch: true,
+                    clickable: false
+                });
+                heading.addChild(emblemBtn);
+            };
+
+            view_main.setTestModeBtn=function(heading){
+                if(!view_main.testMode) return;
+                var test_btn = new ToolBarButton({
+                    icon: view_main.testModeIcon,
+                    iconPos: "0,0,29,29",
+                    style: "float:right",
+                    onClick: function () {
+                        view_main.msgBox.innerHTML = view_main.testMode;
+                        view_main.dialogWin.show();
+                    }
+                });
+                heading.addChild(test_btn)
+            };
+
+            view_main.setEmblemBtn(view_main.firstHeading);
+            view_main.setEmblemBtn(pickUnitView.heading);
+            view_main.setEmblemBtn(calendarView.heading);
+            view_main.setTopButtonsFor = function (view) {
+                if (!view.dateBtnHeading) {
+                    var dateBtnHeading = new Heading({fixed: "top"});
+                    dateBtnHeading.startup();
+                    view.dateBtnHeading = dateBtnHeading;
+                    view.inner_scroll.domNode.appendChild(view.dateBtnHeading.domNode);
+                }
+                if (!view.btnBeginDate)
+                    view.btnBeginDate = view_main.setTopDateBtn(view,"date_first_" + view.id,"Начальная дата");
+                view.btnBeginDate.set("label", view_main.btnBeginDate.label);
+                view.btnBeginDate.dateValue = view_main.btnBeginDate.dateValue;
+
+                if (!view.btnEndDate)
+                    view.btnEndDate = view_main.setTopDateBtn(view, "date_last_" + view.id, "Конечная дата");
+                view.btnEndDate.set("label", view_main.btnEndDate.label);
+                view.btnEndDate.dateValue = view_main.btnEndDate.dateValue;
+
+                if (!view_main.detailBtn) {
+                    view_main.detailBtn = new ToggleButton({
+                        label: "Детально",
+                       // style:"float:right",
+                        id: view_main.id + "_detail_btn",
+                        onClick: function () {
+                            view_main.loadDetailContent()
+                        }
+                    });
+                    view_main.dateBtnHeading.addChild(view_main.detailBtn);
+                }
+            };
+
+            view_main.setTopDateBtn=function(view,id){
+                var btn = new ToolBarButton({id: id, moveTo: "calendar_view", transition: "none"});
+
+                btn.onClick= function () {
+                    if(view_main.prog) view_main.prog.stop();
+                    calendarView.setContent(view, this);
+                };
+                view.dateBtnHeading.addChild(btn);
+                btn.startup();
+                return btn;
+            };
+
+            view_main.setBottomButtonsFor = function (view) {
+                var tr = registry.byId(view.id + "hfbh");
+                var bottomHeading = registry.byId(view.id + "hf");
+                if (!bottomHeading) {
+                    bottomHeading = new Heading({fixed: "bottom"}, view.id + "hf");
+                    document.getElementById('body').appendChild(bottomHeading.domNode);
+
+                    view.inner_scroll.domNode.appendChild(bottomHeading.domNode);
+                    bottomHeading.startup();
+                }
+                if (!tr) {
+                    var table = document.createElement('table');
+                    table.setAttribute("align", "center");
+                    var tbody = document.createElement('tbody');
+                    var tr = document.createElement('tr');
+                    var td = document.createElement('td');
+                    td.setAttribute("aling", "center");
+                    bottomHeading.domNode.appendChild(table);
+                    table.appendChild(tbody);
+                    tbody.appendChild(tr);
+                    tr.appendChild(td);
+                }
+
+                function getCurrentTime() {
+                        return moment();
+                }
+                if (!view.todayBtn) {
+                    function getTodayBeginning() {
+                        return getCurrentTime().startOf('day');
+                    }
+                    view.todayBtn =  setBottomButtons(tr,view,"Сегодня", getTodayBeginning, getCurrentTime);
+                }
+                if (!view.yesterdayBtn) {
+                    function getYesterdayBeginning() {
+                        return getCurrentTime().startOf('day').subtract(1, 'days');
+                    }
+                    function getYesterdayEnd() {
+                        return getCurrentTime().endOf('day').subtract(1, 'days');
+                    }
+                    view.yesterdayBtn = setBottomButtons(tr,view,"Вчера", getYesterdayBeginning, getYesterdayEnd );
+                }
+                if (!view.weekBtn) {
+                    function getWeekBeginning(){
+                        return  getCurrentTime().startOf('week');
+                    }
+                    view.weekBtn = setBottomButtons(tr,view,"Неделя", getWeekBeginning, getCurrentTime );
+                }
+                if (!view.monthBtn) {
+                    function getMonthBeginning() {
+                       return  getCurrentTime().startOf('month');
+                    }
+                    view.monthBtn = setBottomButtons(tr,view,"Месяц", getMonthBeginning, getCurrentTime );
+
+                } else {
+                    view.btnBeginDate.set("label", view_main.btnBeginDate.label);
+                    view.btnEndDate.set("label", view_main.btnEndDate.label);
+                }
+            };
+            var setBottomButtons= function(tr, view, label, get_first_date, get_last_date){
+                var btn= new ToolBarButton({
+                    get_first_date:get_first_date,
+                    get_last_date:get_last_date,
+                    style: "padding-left:4px;padding-right:4px; ",
+                    label: label,
+                    clickable: "true"
+                });
+                btn.onClick = function () {
+                    view.btnBeginDate.dateValue=this.get_first_date();                                                  console.log("this.get_first_date()=", this.get_first_date());
+                    view.btnEndDate.dateValue=this.get_last_date();                                                     console.log("this.get_last_date()=", this.get_last_date());
+                    view.btnBeginDate.set("label", this.get_first_date().format("DD.MM.YYYY"));
+                    view.btnEndDate.set("label", this.get_last_date().format("DD.MM.YYYY"));
+                    view.loadDetailContent(view_main);
+                };
+                tr.appendChild(btn.domNode);
+                btn.startup();
+                return btn;
+            };
+            */
+            /*{
+             "head": "Магазины",
+             "units":[
+             { "id": "Bata1", "short_name": "Bata1", "name": "Магазин  БАТА1" }
+             ,{ "id": "Bata2", "short_name": "Bata2", "name": "Магазин БАТА2" } ]
+             }*/
+
+//            view_main.loadMainContent = function () {
+//                Request.getJSONData({url: "/mobile/get_units", consoleLog: true},
+//               // getJSONData({url: "/mobile", condition: "action=get_units", consoleLog: true},
+//                    function (success, result) {
+//                        if (success) {                                                                                  console.log("result =", result);
+//                            if (result.error) {
+//                                view_main.msgBox.innerHTML = "Нет данных";
+//                                view_main.dialogWin.show();
+//                            } else view_main.setMainContent(result);
+//                        } else {//error!!!
+//                            view_main.msgBox.innerHTML = "Нет связи с сервером";
+//                            view_main.dialogWin.show();
+//                        }
+//                        if(view_main.prog) view_main.prog.stop();
+//                    });
+//            };
+//
+//            view_main.setMainContent = function (maindata) {
+//                view_main.first_header_string = maindata.head;
+//                view_main.firstHeading.set("label", view_main.first_header_string);
+//                view_main.pickUnitBtn.units_data = maindata.units;
+//                view_main.pickUnitBtn.selected_units = [];
+//                view_main.string_units="";
+//                for(var k=0; k<view_main.pickUnitBtn.units_data.length; k++){
+//                    view_main.pickUnitBtn.selected_units[k] = view_main.pickUnitBtn.units_data[k];
+//                    view_main.string_units=view_main.string_units+view_main.pickUnitBtn.selected_units[k].short_name;
+//                    if(k<view_main.pickUnitBtn.units_data.length-1){
+//                        view_main.string_units=view_main.string_units + " | ";
+//                    }
+//                }
+//                view_main.pickUnitBtn.set("label", view_main.string_units);
+//                view_main.setTopButtonsFor(view_main);
+//                view_main.setBottomButtonsFor(view_main);
+//                view_main.inner_scroll.startup();
+//                view_main.startup();
+//                if (maindata.mode && maindata.mode.toString().toLowerCase().indexOf("test") !== -1) {
+//                    view_main.testModeIcon="/icons/exclamation-mark29x29.ico";
+//                    view_main.testMode = maindata.mode;
+//                    view_main.setTestModeBtn(view_main.firstHeading);
+//                    view_main.setTestModeBtn(pickUnitView.heading);
+//                    view_main.setTestModeBtn(calendarView.heading);
+//                }
+//                if (!view_main.btnBeginDate.label) view_main.todayBtn.onClick();
+//            };
+
+            view_main.loadDetailContent = function () {
+//                if (view_main.view_main_list_items) view_main.view_main_list_items.destroy();
+//                if (view_main.prog) view_main.prog.destroy();
+//                view_main.prog = new ProgressIndicator({size: 200, center: true});
+//                document.getElementById('body').appendChild(view_main.prog.domNode);
+//                view_main.prog.start();
+//
+//                var bdate = view_main.btnBeginDate.dateValue.format("YYYY-MM-DD");
+//                var edate = view_main.btnEndDate.dateValue.format("YYYY-MM-DD");
+
+                var bdate = "2017-12-01";
+                var edate = "2018-09-01";
+//                var detail = (view_main.detailBtn.get("checked")) ? "&detail" : "";
+//                var units_list = view_main.pickUnitBtn.selected_units;
+//                var unit_params = null;
+//                for (var i in units_list) {
+//                    var unit_condition = "unit_" + i + "_id=" + units_list[i].id;
+//                    unit_params = (unit_params === null) ? unit_condition : unit_params + "&" + unit_condition;         console.log("unit_params=",unit_params);
+//                }
+                //getJSONData({
+                Request.getJSONData({
+                        url: "/mobile/rec/getDataForRecsList",
+                        condition: "bdate=" + bdate + "&edate=" + edate, //+ "&" + unit_params + detail,
+                        consoleLog: true
+                    }
+                    , function (success, result) {
+                            console.log("result 318=",result);
+                        if (success) {                                                                          console.log("view_main.loadDetailContent getJSONData result=", result);
+                            var data=[];
+                            ///error!!!!!!!!!!!!!!!
+//                            if (result.error) {
+//                                view_main.msgBox.innerHTML = "Нет данных";                                      console.log("view_main.loadDetailContent getJSONData DATA ERROR! error=", result.error);
+//                                view_main.dialogWin.show();
+//                            }
+                            view_main.setDetailContent(result);
+                        } else {//error!!!
+                            view_main.msgBox.innerHTML = "Нет связи с сервером";
+                            view_main.dialogWin.show();
+                        }
+                        if(view_main.prog) view_main.prog.stop();
+                    }
+                );
+            };
+            view_main.setDetailContent = function (data) {
+                var table=createMobTable(data, function(trData){
+                    view_main.showDetailView(trData /*, this.moveTo, this.url, this.detail_id, this.data_unit_id*/);
+                } );
+                view_main.domNode.appendChild(table);
+            };
+//                function createMobTable(tableData){
+//                    var table = document.createElement('table');
+//                    table.className="mobTable";
+//                    table.style.width="100%";
+//                    var thead=document.createElement('thead');
+//                    table.appendChild(thead);
+//                    var visibleCol=getVisibleCol(tableData.columns);
+//                    for (var i in visibleCol){
+//                        var col=visibleCol[i];
+//                        var th = document.createElement('th');
+//                        th.innerText=col['name'];
+//                        thead.appendChild(th);
+//                    }
+//
+//                    var tbody=document.createElement("tbody");
+//                    table.appendChild(tbody);
+//                    var items=tableData.items;
+//                    for (var j in items) {
+//                        var dataItem = items[j];                 //DocID  DocDate
+//                        var tr = document.createElement("tr");
+//                        tbody.appendChild(tr);
+//                        for(var k in visibleCol){
+//                            var vcol=visibleCol[k];
+//                            var td = document.createElement("td");
+//                            tr.appendChild(td);
+//                            if(dataItem[vcol.data]){
+//                                td.innerText=dataItem[vcol.data];
+//                            }
+//                        }
+//                        if (dataItem.DocID) {
+//                            tr.docData=dataItem;
+////                            tr.ChID=dataItem["ChID"];
+//                            tr.onclick = function () {
+//                                console.log("tr.onClick dataItem.DocID =", this.docData.DocID );
+//                                view_main.showDetailView(this.docData /*, this.moveTo, this.url, this.detail_id, this.data_unit_id*/);
+//                            }
+//                        }
+//                    }
+//                    return table;
+//                }
+//                function getVisibleCol(columns){
+//                    var visibleCol=[];
+//                    for(var i in columns){
+//                        var col=columns[i];
+//                        console.log("data=",col['visible'], col['data'], col);
+//                        if(!(col['visible']==false)){
+//                            visibleCol.push(col);
+//                        }
+//                    }
+//                    return visibleCol;
+//                }
+            view_main.onBeforeTransitionIn = function () {
+                view_main.loadDetailContent();
+            };
+            view_main.showDetailView = function (docData /*DocID, ChID,DocDate /*, id, url, detail_id, unit_id*/) {
+                // TODO IF!!!!!!!!!!!!!!!!!
+                if(!docData.DocID )console.log("!docData.DocID");
+                if(!docData.ChID )console.log("!docData.ChID");
+                if(!docData.DocDate )console.log("!docData.DocDate");
+
+
+//                var view = registry.byId(id); console.log("view=",view);
+//                var view = document.getElementById(id);
+//                if (view)view.remove(); //
+//                 view= new View({
+//                    id:id
+//                });
+//                var head= new Heading({
+//                    label: id,
+//                    back: "Назад",
+//                    moveTo: "view_main",
+//                    transition: "none"
+//                });
+//                document.getElementById('body').appendChild(view.domNode);
+//                view.addChild(head);
+//                head.startup();
+//                view.startup();
+//                view.show();
+
+
+//                var view = registry.byId(docData.DocID);
+//                if (!view) {
+//                    view = new DetailView({
+//                        view_main:view_main,
+//                        detail_id: docData.DocID,
+//                        //detail_id : detail_id,
+//                        heading_label: "Приходная накладная № " + docData.DocID + " от " + docData.DocDate
+//                        //unit_id : unit_id,
+//                        //pickUnitView:pickUnitView,
+////                        url:url
+//                    });
+////                    view_main.setEmblemBtn(view.top_heading);
+////                    view_main.setTestModeBtn(view.top_heading);
+////                    view_main.setTopButtonsFor(view);
+////                    view_main.setBottomButtonsFor(view);
+//                    view.inner_scroll.startup();
+//                    view.startup();
+//                }
+//                else {
+//                    view.setPickBtnFor(view_main,pickUnitView, unit_id);
+//                    view_main.setTopButtonsFor(view);
+//                }
+//                view.loadDetailContent(view_main);
+
+                var view = new DetailView({
+                    view_main:view_main,
+                    detail_id: docData.DocID,
+                    ChID:docData.ChID,
+                    //detail_id : detail_id,
+                    heading_label: "Приходная накладная № " + docData.DocID + " от " + docData.DocDate
+                    //unit_id : unit_id,
+                    //pickUnitView:pickUnitView,
+//                        url:url
+                });
+//                    view_main.setEmblemBtn(view.top_heading);
+//                    view_main.setTestModeBtn(view.top_heading);
+//                    view_main.setTopButtonsFor(view);
+//                    view_main.setBottomButtonsFor(view);
+//                view.inner_scroll.startup();
+                view.startup();
+                view.loadDetailContent(view_main);
+                view.show();
+            };
+
+            view_main.loadDetailContent();
+
+        });
+</script>
+</html>
